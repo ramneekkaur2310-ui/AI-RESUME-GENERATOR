@@ -9,7 +9,6 @@ download AI created resume based on high ATS
 score""")
 
 #===========AGENT CODE==============#
-import IPython as ip
 import os
 import time
 import langchain
@@ -76,6 +75,7 @@ def prompt_generator(agent):
   with open(file_name, 'w') as f:
     f.write(response.connect[-1]['text'])
   return "Prompt file generated successfully, agent can read it"
+prompt_generator(model)
 
 
 #tool 2 :
@@ -86,6 +86,7 @@ def resume_maker_prompt():
   with open('prompt.py','r')as f:
     prompt=f.read()
   return prompt
+resume_maker_prompt()
 
  #===================== GENERATE RESUME ======================#
 
@@ -106,7 +107,8 @@ if st.button("Generate resume"):
   with st.spinner("Running Agent........")
     response = agent.invoke({'messages':[{'role':'user','content':query}]})
     code = response['messages'][-1].content[-1]['text']
-    st.markdown(code)
+    #st.markdown(code)
+st.html(code, width='stretch', unsafe_allow_javascript=True)
 
 
 
