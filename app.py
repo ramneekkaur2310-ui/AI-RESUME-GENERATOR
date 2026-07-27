@@ -104,7 +104,7 @@ Give Python Developer Resume"""
 
 query = final_prompt + user_details
 if st.button("Generate resume"):
-  with st.spinner("Running Agent........")
+  with st.spinner("Running Agent........"):
     response = agent.invoke({'messages':[{'role':'user','content':query}]})
     code = response['messages'][-1].content[-1]['text']
     #st.markdown(code)
