@@ -1,3 +1,15 @@
+#Step:1 ===========Load Modules===============================
+import os
+import time
+import langchain
+from langchain.agents import create_agent
+from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
+import pytesseract as pyt
+from tavily import TavilyClient
+from langchain.messages import SystemMessage, HumanMessage
+import numpy as np
+import streamlit as st
 #================== STEP 2 ==========================#
 #To show web-app: complete page layout
 st.set_page_config(layout="wide")
@@ -18,3 +30,93 @@ if not all(ALL_API):
 
 elif all(ALL_API):
     st.sidebar.success("API-KEYS LOADED SUCCESSFULLY")
+    #MODEL LOAD
+    model=ChatGoogleGnerativeAI(
+        google_api_key=GOOGLE_API_KEY,
+        model=st.sidebar.selectbox("Gemini-Model-Name",
+                                   options=["gemini-2.5-flash",
+                                            "gemini-2.5-flash-lite",
+                                            "gemini-3.5-flash",
+                                            "gemini-3.5-flash-lite"])
+                                   )
+else:
+    st.sidebar.info("CHECK-API-KEYS")
+
+
+#=========================== STEP 5 BACKEND CODE =========================#
+#Search_latest_info using tavily
+def search_latest_info(query):
+    """This function helps to give
+    latest search using tavily 
+    based on given user query related research or 
+    contents"""
+
+    client=TavilyClient(api_key=Tavily_API_KEY)
+    response=client.search(query)
+    return response 
+
+
+#========================= STEP 7 AGENT CALL =============================#
+# leader_agent creation 
+leader_agent=create_agent(
+    model=model,
+    tools=[search_latest_info,
+           generate_image]
+)
+
+
+#======================= STEP 8 NAVBAR STREAMLIT ===========================#
+tab1,tab2,tab3=st.tabs(["Generate Image",
+                        "Fetch Latest News",
+                        "Genearte PPT"])
+
+if(user_input) and (agent):
+    #TAB 1 code
+ with tab1:
+     if st.button("Generate Image", keys="Gen-Image"):
+         with st.spinner("Running Agent"):
+             try:
+                 generate_image(user_input)
+             except:
+                 url=f""
+                 time.sleep(4)
+                 st.image(url)
+
+#TAB 2 CODE
+with tab2:
+    if st.button("Fetch News",keys="Fetch-News"):
+        with st.spinner("Running Agent"):
+            try:
+                prompt= "Give Multiple news in HTML card Formatfor topic" + user_input
+            response= leader_agent.invoke({'messages':[{'role':'user',
+                                                        'content':prompt}]})
+            code=response['messages'][-1].content[-1]['text']
+            st.html(code, width="stretch",
+                    unsafe_allow_javascript=True)
+          except Exception as err:
+            st.error(err)
+            
+    
+# TAB 3 Code
+with tab3:
+    if st.button("Generate PPT", key="Gen-PPT"):
+        with st.spinner("Running Agent"):
+            try:
+              code = run_agent(leader_agent, user_input)
+              st.html(
+                    code,
+                    width="stretch",
+                    unsafe_allow_javascript=True
+                )
+                # File save
+                with open("ppt.html", "w") as f:
+                    f.write(code)
+                st.download_button(
+                    label="DOWNLOAD PPT",
+                    data=code,
+                    file_name="ppt.html",
+                    mime="text/html"
+                )
+
+            except Exception as err:
+                st.error(err)           
